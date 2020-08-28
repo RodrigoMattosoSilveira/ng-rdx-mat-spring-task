@@ -33,6 +33,43 @@ We will address this based on the workflow:
 ## Angular Material
 My original `Todo` application was a tour de force, quite ugly! We will strive for a more elegant approach.
 
+# Project Structure
+We will create the `backend` and `frontend`, grooming them to fit our target structure;
+## Project root folder
+Create the `project root folder`
+````shell script
+$ cd ~/projects
+$ mkdir ng-rdx-mat-spring-task
+````
+Notes:
+1. I'm a `MAC` user;
+1. I keep all my projects on my `home's project folder`;
+1. I named my `project root folder` `ng-rdx-mat-spring-task`;
+1. Note that I used `tssk` instead of `todo` to overcome my IDE use of `todo` as a reserved word;
+
+## Project repository
+We will commit our work as we go along, you must have `git` installed:
+````shell script
+$ echo "# ng-rdx-mat-spring-task" >> README.md
+$ git init
+$ git add README.md
+$ git commit -m "first commit"
+$ git remote add origin git@github.com:RodrigoMattosoSilveira/ng-rdx-mat-spring-task.git
+$ git push -u origin master
+````
+
+This yields the following:
+````text
+|- ng-rdx-mat-spring-task
+   |- ./
+   |- ../
+   |- .git/
+   README.md
+````
+Notes:
+1. I used `ng-rdx-mat-spring-task` as my `project root name`;
+1. My `GitHub` account is `https://github.com/RodrigoMattosoSilveira`; you have to substitute it for yours;
+
 # Links
 ## Blogs
   * [Building a Web Application with Spring Boot and Angular](https://www.baeldung.com/spring-boot-angular-web);
