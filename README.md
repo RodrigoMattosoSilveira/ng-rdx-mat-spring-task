@@ -70,6 +70,191 @@ Notes:
 1. I used `ng-rdx-mat-spring-task` as my `project root name`;
 1. My `GitHub` account is `https://github.com/RodrigoMattosoSilveira`; you have to substitute it for yours;
 
+## Backend
+### Steps
+We will take the following steps:
+1. Navigate to [Spring Boot Intializer]( https://start.spring.io);
+1. Configure  the `backend` attributes (see below);
+1. Configure the `backend` dependencies (see below);
+1. Generate the `backend` configuration - [Spring Boot Intializer]( https://start.spring.io) saves it in your `~/Downloads` file;
+1. Expand the `backend` configuration;
+1. Copy the expanded `backend` configuration to your `~/projects/<project root>` folder;
+1. Create the `backend` folder;
+1. Move `src` to `backend`;
+1. Copy `pom` to `backend`;
+1. Edit `project root pom` to be the `parent of the backend pom`;
+1. Edit `backend pom` to be the `child of the parent pom`;
+
+### Backend Attribute Configuration
+![Spring Boot Dependencies](md-artifacts/Spring-Boot-Project-Attributes.png)
+
+Notes:
+1. You can use any valid `group name`; henceforth we will use refer to `com.madronetek` for the same of convenience;
+1. You can use any valid `artifact name`; henceforth we will use refer to `task` because this is a blog about a `task` application;
+1. I picked `Java 14` to stay abreast of the latest version;
+
+### Backend Dependencies
+![Spring Boot Dependencies](md-artifacts/Spring-Boot-Project-Dependencies.png)
+
+Notes:
+1. I selected these libraries because I used them in my original `Todo` project;
+
+### Copy expanded backend configuration to project root
+We will end up with the following:
+````text
+|- ng-rdx-mat-spring-task
+   |- .git/
+   |- .gitignore
+   |- .idea/
+   |- .mvn/
+   |- HELP.md
+   |- md-artifacts/
+   |- mvnw
+   |- mvnw.cmd
+   |- pom.xml
+   |- README.md
+   |- src/
+     |- main
+     ... etc.
+     |- test
+````
+
+### Set backend folder
+Once we move the `src` folder to the `backend` folder and copy the `project root pom` to the 'backend' folder we have:
+````text
+|- ng-rdx-mat-spring-task
+   |- .git/
+   |- .gitignore
+   |- .idea/
+   |- .mvn/
+   |- backend
+      |- src/
+         |- main
+            ... etc.
+         |- test
+      |- pom.xml
+   |- HELP.md
+   |- md-artifacts/
+   |- mvnw
+   |- mvnw.cmd
+   |- pom.xml
+   |- README.md
+````
+
+### Set parent pom
+We re-factor the original pom:
+1. Remove dependencies, see the `backend` and `frontend` pom;
+1. Remove the build, see the `backend` and `frontend` pom;
+1. Add a few properties;
+1. Connect it with its `backend` child;
+
+````xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+  
+    <artifactId>task</artifactId>
+
+    <name>task</name>
+    <description>Learn how to use Angular, Redux, Material, Spring Boot, using a Task (e.g. Todo) app</description>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.3.3.RELEASE</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+	<groupId>com.madrone</groupId>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<properties>
+		<java.version>14</java.version>
+	</properties>
+
+    <modules>
+        <module>backend</module>
+    </modules>
+
+</project>
+````
+### Set the backend pom
+1. Set up the parent
+1. Remove properties, since it inherits them its parent;
+
+````xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+    <artifactId>backend</artifactId>
+
+    <name>backend</name>
+    <description>Backend module</description>
+
+    <parent>
+        <groupId>com.madrone</groupId>
+        <artifactId>task</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.junit.vintage</groupId>
+					<artifactId>junit-vintage-engine</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+````
+
 # Links
 ## Blogs
   * [Building a Web Application with Spring Boot and Angular](https://www.baeldung.com/spring-boot-angular-web);
