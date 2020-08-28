@@ -255,6 +255,222 @@ We re-factor the original pom:
 </project>
 ````
 
+## Front
+### Steps
+We will take the following steps:
+1. Install  [Angular-CLI](https://angular.io/cli) globaly;
+1. Create the `frontend/src/main` folder; this enables maven to manage it seamlessly;
+1. Copy the `backend pom` to the `frontend` folder;
+1. Refactor the `frontend pom`, tie it to its parent;
+1. Generate the `angular frontend`;
+1. Update the `frontend pom` to enable `maven` to build the project;
+1. Re-factor the `angular control files` to ...
+
+### Install the latest angular cli
+
+
+### Create the `frontend/src/main` folder, copy backend pom
+We end up with:
+```shell script
+````text
+|- ng-rdx-mat-spring-task
+   |- .git/
+   |- .gitignore
+   |- .idea/
+   |- .mvn/
+   |- backend
+      |- src/
+         |- main
+            ... etc.
+         |- test
+      |- pom.xml
+   |- frontend
+      |- src/
+         |- main
+      |- pom.xml
+   |- HELP.md
+   |- md-artifacts/
+   |- mvnw
+   |- mvnw.cmd
+   |- pom.xml
+   |- README.md
+````
+
+### Edit the frontend pom
+We do the following edits:
+1. change `<artifactId>` – to `frontend`;
+1. change `<name>` – to `frontend`;
+1. change `<description>` – to `Frontend module`;
+1. remove the existing plugin, to have none; we will add a new one shortly;
+1. Tie it to its parent;
+1. Tie its parent to it;
+1. Build `frontend` with Maven;
+1. Refactor `angular.json` to align with `maven`;
+1. Add `frontend` module dependency to `backend`
+
+````xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+    <artifactId>frontend</artifactId>
+
+    <name>frontend</name>
+    <description>Frontend module</description>
+
+    <parent>
+        <groupId>com.madrone</groupId>
+        <artifactId>task</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+	<build>
+		<plugins></plugins>
+	</build>
+
+</project>
+
+````
+
+### Tie the parent pom to the frontend pom
+````xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+    <artifactId>task</artifactId>
+
+    <name>task</name>
+    <description>Learn how to use Angular, Redux, Material, Spring Boot, using a Task (e.g. Todo) app</description>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.3.3.RELEASE</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+	<groupId>com.madrone</groupId>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<properties>
+		<java.version>14</java.version>
+	</properties>
+
+    <modules>
+        <module>backend</module>
+        <module>frontend</module>
+    </modules>
+
+</project>
+````
+
+### Generate the angular application
+This is tricky since we want it is a specific location:
+````shell script
+$ cd frontend/src/main
+$ ng new --skip-git app
+````
+
+Notes:
+1. We are not doing this from the `project root` as it is often the case with `angular`;
+1. We did configure the generator to not generate git repo since we already have one
+
+### Generate the angular application .gitignore file
+1. create a `.gitignore` file `frontend` 
+Navigate to [this gitignore generator](https://www.toptal.com/developers/gitignore), select `angular` and node, generate the files, copy it, and past it on our `.gitignore`
+
+### Build frontend with maven
+We will use the excellent [frontend-maven-plugin](https://github.com/eirslett/frontend-maven-plugin) to build the frontend. It installs `node` and `npm` as well as builds our `angular project`. Be sure to include the latest tagged version of the plugin (I used 1.6) and add the following code from the <plugins> field to the frontend/pom.xml:
+````xml
+			<plugin>
+				<groupId>com.github.eirslett</groupId>
+				<artifactId>frontend-maven-plugin</artifactId>
+				<version>1.9.1</version>
+				<configuration>
+					<workingDirectory>src/main/angular</workingDirectory>
+					<nodeVersion>v12.14.1</nodeVersion>
+					<npmVersion>6.13.7</npmVersion>
+				</configuration>
+				<executions>
+					<execution>
+						<id>install node and npm</id>
+						<goals>
+							<goal>install-node-and-npm</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>npm install</id>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>npm run build</id>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+						<configuration>
+							<arguments>run build</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+````
+Notes:
+1. Check the [Maven Frontend Plugin latest version](https://mvnrepository.com/artifact/com.github.eirslett/frontend-maven-plugin#:~:text=Maven%20Frontend%20Plugin%20This%20Maven%20plugin%20lets%20you,Karma%20tests.%20Central%20%2838%29%20Atlassian%203rd-P%20Old%20%282%29);
+1. Check [Node.js](https://nodejs.org/en/) latest version;
+1. `npm` is distributed with `Node.js`- which means that when you download `Node.js`, you automatically get `npm` installed on your computer;
+1. `npm run build` calls the `npm run` command (don’t confuse it with `npm build`), which will run the angular `ng build` script to compile an application into an output directory. You can configure the build command in the frontend’s package.json file, so we will add the –prod option to uglify the javascript code; we will not do it so that we can debug it;
+
+### Refactor `angular.json` to align with maven
+To keep up with the `Maven` standards we need to alternate  `frontend/src/main/angular/angular.json` `outputPath` option for our Angular project, instead of `dist/angular` we use `../../../target/frontend`:
+
+````json
+//
+…
+"projects": {
+    "angular": {
+      "architect": {
+        "build": {
+          …
+          "options": {
+            "outputPath": "../../../target/frontend",
+…
+````
+We have just changed the path for the built project, so we need to add the information about the new path to the frontend/pom.xml:
+
+````xml
+<!-- frontend/pom.xml -->
+…
+<build>
+…
+   <resources>
+      <resource>
+         <directory>target/frontend</directory>
+         <targetPath>static</targetPath>
+      </resource>
+   </resources>
+</build
+````
+
+### Add frontend module dependency to backend
+````xml
+<!-- backend/pom.xml -->
+…
+<dependencies>
+…
+   <dependency>
+      <groupId>in.keepgrowing</groupId>
+      <artifactId>frontend</artifactId>
+      <version>${project.version}</version>
+      <scope>runtime</scope>
+   </dependency>
+<dependencies>
+````
 # Links
 ## Blogs
   * [Building a Web Application with Spring Boot and Angular](https://www.baeldung.com/spring-boot-angular-web);

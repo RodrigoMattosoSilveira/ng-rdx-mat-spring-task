@@ -3,7 +3,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
+    <groupId>com.madronetek</groupId>
     <artifactId>task</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
     <name>task</name>
     <description>Learn how to use Angular, Redux, Material, Spring Boot, using a Task (e.g. Todo) app</description>
@@ -15,15 +18,13 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-	<groupId>com.madrone</groupId>
-	<version>0.0.1-SNAPSHOT</version>
-
-	<properties>
+    <properties>
 		<java.version>14</java.version>
 	</properties>
 
     <modules>
         <module>backend</module>
+        <module>frontend</module>
     </modules>
 
 </project>

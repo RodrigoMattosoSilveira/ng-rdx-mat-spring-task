@@ -9,8 +9,8 @@
     <description>Backend module</description>
 
     <parent>
-        <groupId>com.madrone</groupId>
-        <artifactId>task</artifactId>
+         <artifactId>task</artifactId>
+        <groupId>com.madronetek</groupId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
@@ -55,6 +55,13 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+        <dependency>
+            <groupId>com.madronetek</groupId>
+            <artifactId>frontend</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
 	</dependencies>
 
 	<build>
