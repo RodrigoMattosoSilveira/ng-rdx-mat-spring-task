@@ -255,7 +255,7 @@ We re-factor the original pom:
 </project>
 ````
 
-## Front
+## Frontend
 ### Steps
 We will take the following steps:
 1. Install  [Angular-CLI](https://angular.io/cli) globaly;
@@ -267,7 +267,7 @@ We will take the following steps:
 1. Re-factor the `angular control files` to ...
 
 ### Install the latest angular cli
-
+If you do not have [Angular-CLI](https://angular.io/cli) installed, please do; if you do, please upgrade it to the most recent `release` version.
 
 ### Create the `frontend/src/main` folder, copy backend pom
 We end up with:
@@ -430,7 +430,6 @@ Notes:
 To keep up with the `Maven` standards we need to alternate  `frontend/src/main/angular/angular.json` `outputPath` option for our Angular project, instead of `dist/angular` we use `../../../target/frontend`:
 
 ````json
-//
 …
 "projects": {
     "angular": {
@@ -471,6 +470,30 @@ We have just changed the path for the built project, so we need to add the infor
    </dependency>
 <dependencies>
 ````
+
+### Ensure we can run e2e tests concurrently with the app
+This is a nice to have, but can come in handy. Update the `package.json/scripts/e2e` script:
+````json
+   ...
+   "e2e": "ng e2e --port 4201"
+   ...
+````
+
+### Fix up the angular app output path
+To keep up with the Maven standards we need to alternate the outputPath option for our Angular project, instead of "dist/angular" use `../../../target/frontend`:
+```json
+/ frontend/src/main/angular/angular.json
+…
+"projects": {
+    "angular": {
+      "architect": {
+        "build": {
+          …
+          "options": {
+            "outputPath": "../../../target/frontend",
+…
+```
+
 # Links
 ## Blogs
   * [Building a Web Application with Spring Boot and Angular](https://www.baeldung.com/spring-boot-angular-web);
@@ -498,5 +521,5 @@ We have just changed the path for the built project, so we need to add the infor
   * [Reselect](https://github.com/reduxjs/reselect) - Simple “selector” library for Redux (and others) inspired by getters in NuclearJS, subscriptions in re-frame and this proposal from speedskater;
   * [Spring Boot](https://spring.io/projects/spring-boot) - Makes it easy to create stand-alone, production-grade Spring based Applications that you can "just run";
   * [Spring Boot Initializer](https://start.spring.io/) - Creates the basic Spring Boot project framework;
-  * [Tomcat](http://tomcat.apache.org/) - open source implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technologies;
+  * [Tomcat](http://tomcat.apache.org/) - open source implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technolog
 
