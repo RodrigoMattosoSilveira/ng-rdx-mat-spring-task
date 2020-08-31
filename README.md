@@ -264,7 +264,9 @@ We will take the following steps:
 1. Refactor the `frontend pom`, tie it to its parent;
 1. Generate the `angular frontend`;
 1. Update the `frontend pom` to enable `maven` to build the project;
-1. Re-factor the `angular control files` to ...
+1. Fix up the `frontend` output of a `maven build` to match the backend;
+1. Enable the `frontend` `e2e` tests to run concurrently with the `frontend` `app`;
+1. Fix CORS issues on localhost
 
 ### Install the latest angular cli
 If you do not have [Angular-CLI](https://angular.io/cli) installed, please do; if you do, please upgrade it to the most recent `release` version.
@@ -474,6 +476,7 @@ We have just changed the path for the built project, so we need to add the infor
 ### Ensure we can run e2e tests concurrently with the app
 This is a nice to have, but can come in handy. Update the `package.json/scripts/e2e` script:
 ````json
+"frontend/src/main/app/package.json"
    ...
    "e2e": "ng e2e --port 4201"
    ...
@@ -482,7 +485,7 @@ This is a nice to have, but can come in handy. Update the `package.json/scripts/
 ### Fix up the angular app output path
 To keep up with the Maven standards we need to alternate the outputPath option for our Angular project, instead of "dist/angular" use `../../../target/frontend`:
 ```json
-/ frontend/src/main/angular/angular.json
+// frontend/src/main/angular/angular.json
 …
 "projects": {
     "angular": {
@@ -494,6 +497,86 @@ To keep up with the Maven standards we need to alternate the outputPath option f
 …
 ```
 
+# Final touches
+## Fix Same Origin Issues
+It is more effective to run the `frontend` using the `ng serve` command during development; in this case the host that serves the `frontend` is `Node.js` out of the `http://localhost:4200` URL, which differs from the host serving the data, `Tomcat`, listening to the `http://localhost:8080` URL. For security reasons, browsers don’t allow calls to resources residing outside the current origin, in our case `http://localhost:4200`. We will enable cross domain access, `CORS`, to enable our browser to perform cross-domain requests.
+
+## Allow Angular to consume data fetched by Spring Boot
+Add the DevCorsConfiguration class to your config directory:
+````java
+// backend/src/main/java/com/madronetek/task/config/DevCorsConfiguration.java
+package in.keepgrowing.springbootangularscaffolding.config;
+ 
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+ 
+@Configuration
+@Profile("development")
+public class DevCorsConfiguration implements WebMvcConfigurer {
+ 
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/api/**").allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
+    }
+}
+````
+
+This configuration enables `CORS` requests from any origin to the `api/` endpoint in the application. You can narrow the access by using the `allowedOrigins`, `allowedMethods`, `allowedHeaders`, `exposedHeaders`, `maxAge` or `allowCredentials` methods – check out the examples in this [spring.io blog post](https://spring.io/blog/2015/06/08/cors-support-in-spring-framework#javaconfig).
+
+## Declare the active profile of your application
+Spring provides a way to configure an application accordingly to various environments – it picks up the application configuration based on the active profile.
+
+Our DevCorsConfiguration class uses @Profile annotation to load its configuration only on a development environment. We will specify the active profile in the application.properties file:
+
+```text
+# backend/src/main/resources/application.properties
+spring.profiles.active=development
+````
+
+## Surrender routing to Angular
+All paths implemented in `Angula`r are accessible when the server is started with `$ ng serve`. However, when you run the whole project built with Maven, the app will give you a `Whitelabel Error Page`:
+
+````text
+There was an unexpected error (type=Not Found, status=404)
+````
+
+The reason is that `Spring Boot` tries to handle all routes by itself! To fix it, we have to customize the `MVC Configuration`. In a project built with `Spring Boot 2+` we can create a `config` directory and the `MvcConfiguration` class in it. The following logic is responsible for redirecting all requests to the `index.html` – as a result, our `Angular` app will be able to handle them:
+                                                                       
+````java
+// backend/src/main/java/com/madronetek/task/config/MvcConfiguration.java
+package com.madronetek.task.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.resource.PathResourceResolver;
+ 
+import java.io.IOException;
+ 
+@Configuration
+public class MvcConfiguration implements WebMvcConfigurer {
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/**")
+                .addResourceLocations("classpath:/static/")
+                .resourceChain(true)
+                .addResolver(new PathResourceResolver() {
+                    @Override
+                    protected Resource getResource(String resourcePath, Resource location) throws IOException {
+                        Resource requestedResource = location.createRelative(resourcePath);
+ 
+                        return requestedResource.exists() && requestedResource.isReadable() ? requestedResource
+                                : new ClassPathResource("/static/index.html");
+                    }
+                });
+    }
+}
+````
+[AntPathMatcher](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/AntPathMatcher.html) matches the "/**" path pattern to zero or more directories in a path, so this configuration will be applied to all routes in our project. Next, a resolver – created with dependency to [PathResourceResolver](https://docs.spring.io/spring-framework/docs/4.1.0.RC1/javadoc-api/org/springframework/web/servlet/resource/PathResourceResolver.html) – will try to find a resource under the given location and all requests that are not handled by `Spring Boot` will be redirected to `index.html` allowing `Angular` to take care of them.
 # Links
 ## Blogs
   * [Building a Web Application with Spring Boot and Angular](https://www.baeldung.com/spring-boot-angular-web);
